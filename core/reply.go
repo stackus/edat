@@ -36,8 +36,8 @@ func DeserializeReply(replyName string, data []byte) (Reply, error) {
 // Register replies using any form desired "&MyReply{}", "MyReply{}", "(*MyReply)(nil)"
 //
 // Replies must be registered after first registering a marshaller you wish to use
-func RegisterReplies(replys ...Reply) {
-	for _, reply := range replys {
+func RegisterReplies(replies ...Reply) {
+	for _, reply := range replies {
 		if v := reflect.ValueOf(reply); v.Kind() == reflect.Ptr && v.Pointer() == 0 {
 			replyName := reflect.Zero(reflect.TypeOf(reply).Elem()).Interface().(Reply).ReplyName()
 			registerType(replyName, reply)

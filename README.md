@@ -6,7 +6,7 @@ edat is an event-driven architecture library for Go.
 
     go get -u github.com/stackus/edat
 
-## Prerequisities
+## Prerequisites
 
 Go 1.15
 
@@ -23,12 +23,28 @@ edat provides opinionated plumbing to help with many aspects of the development 
 
 ## Examples
 
-[FTOGOGO](https://github.com/stackus/ftgogo) A golang rewrite of the FTGO Eventuate demonstration application using edat.
+[FTGOGO](https://github.com/stackus/ftgogo) A golang rewrite of the FTGO Eventuate demonstration application using edat.
 
 ## TODOs
 
 - Documentation
+- Wiki Examples & Quickstart
 - Tests, tests, and more tests
+
+## Support Libraries
+
+### Stores
+
+- [edat-pgx](https://github.com/stackus/edat-pgx) Postgres
+
+### Event Streams
+
+- [edat-stan](https://github.com/stackus/edat-stan) NATS Streaming
+- [edat-pgx](https://github.com/stackus/edat-pgx) Postgres (outbox store and message producer)
+
+### Marshallers
+
+- [edat-msgpack](https://github.com/stackus/edat-msgpack) MessagePack
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
@@ -36,4 +52,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## License
-[MIT](https://github.com/stackus/edat/LICENSE)
+MIT
