@@ -1,3 +1,7 @@
+![](https://github.com/stackus/edat/workflows/Run%20CI/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/stackus/edat)](https://goreportcard.com/report/github.com/stackus/edat)
+[![](https://godoc.org/github.com/stackus/edat?status.svg)](https://pkg.go.dev/github.com/stackus/edat)
+
 # edat - Event-Driven Architecture Toolkit
 
 edat is an event-driven architecture library for Go.
