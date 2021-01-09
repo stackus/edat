@@ -10,6 +10,7 @@ import (
 
 const aggregateNeverCommitted = 0
 
+// ErrPendingChanges is the error returned when a second command is applied to an aggregate without clearing changes
 var ErrPendingChanges = fmt.Errorf("cannot process command while pending changes exist")
 
 // AggregateRoot is the base for Aggregates

@@ -10,6 +10,7 @@ import (
 	"github.com/stackus/edat/es"
 )
 
+// EventStore implements es.AggregateRootStore
 type EventStore struct {
 	events map[string][]eventMsg
 	mu     sync.Mutex
@@ -22,6 +23,7 @@ type eventMsg struct {
 
 var _ es.AggregateRootStore = (*EventStore)(nil)
 
+// NewEventStore constructs a new EventStore
 func NewEventStore(options ...EventStoreOption) *EventStore {
 	s := &EventStore{
 		events: make(map[string][]eventMsg),
@@ -35,6 +37,7 @@ func NewEventStore(options ...EventStoreOption) *EventStore {
 	return s
 }
 
+// Load implements es.AggregateRootStore.Load
 func (s *EventStore) Load(_ context.Context, root *es.AggregateRoot) error {
 	// just lock it all
 	s.mu.Lock()
@@ -64,6 +67,7 @@ func (s *EventStore) Load(_ context.Context, root *es.AggregateRoot) error {
 	return nil
 }
 
+// Save implements es.AggregateRootStore.Save
 func (s *EventStore) Save(_ context.Context, root *es.AggregateRoot) error {
 	// just lock it all
 	s.mu.Lock()

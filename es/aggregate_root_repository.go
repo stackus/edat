@@ -8,6 +8,7 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// AggregateRepository interface
 type AggregateRepository interface {
 	Load(ctx context.Context, aggregateID string) (*AggregateRoot, error)
 	Save(ctx context.Context, command core.Command, options ...AggregateRootOption) (*AggregateRoot, error)
@@ -24,6 +25,7 @@ type AggregateRootRepository struct {
 // AggregateRootStoreMiddleware interface for embedating stores
 type AggregateRootStoreMiddleware func(store AggregateRootStore) AggregateRootStore
 
+// ErrAggregateNotFound is returned when no root was found for a given aggregate id
 var ErrAggregateNotFound = errors.New("aggregate not found")
 
 // NewAggregateRootRepository constructs a new AggregateRootRepository

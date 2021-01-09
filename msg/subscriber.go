@@ -11,6 +11,7 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// MessageSubscriber interface
 type MessageSubscriber interface {
 	Subscribe(channel string, receiver MessageReceiver)
 }

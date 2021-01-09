@@ -4,7 +4,7 @@ import (
 	"github.com/stackus/edat/log"
 )
 
-// PublisherPublisherOption options for PublisherPublisher
+// PublisherOption options for PublisherPublisher
 type PublisherOption func(*Publisher)
 
 // WithPublisherLogger is an option to set the log.Logger of the Publisher

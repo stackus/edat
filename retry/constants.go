@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Retry constants
 const (
 	DefaultInitialInterval = 500 * time.Millisecond
 	DefaultMaxRetries      = 100
