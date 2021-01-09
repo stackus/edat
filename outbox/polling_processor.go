@@ -12,7 +12,7 @@ import (
 	"github.com/stackus/edat/retry"
 )
 
-// PollingProcess implements MessageProcessor
+// PollingProcessor implements MessageProcessor
 type PollingProcessor struct {
 	in                 MessageStore
 	out                msg.MessagePublisher
