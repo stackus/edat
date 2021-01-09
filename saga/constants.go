@@ -9,6 +9,7 @@ const (
 	isCompensating  = true
 )
 
+// LifecycleHook type for hooking in custom code at specific stages of a saga
 type LifecycleHook int
 
 // Definition lifecycle hooks

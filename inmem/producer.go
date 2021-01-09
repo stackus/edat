@@ -7,12 +7,14 @@ import (
 	"github.com/stackus/edat/msg"
 )
 
+// Producer implements msg.Producer
 type Producer struct {
 	logger log.Logger
 }
 
 var _ msg.Producer = (*Producer)(nil)
 
+// NewProducer constructs a new Producer
 func NewProducer(options ...ProducerOption) *Producer {
 	p := &Producer{
 		logger: log.DefaultLogger,
@@ -25,6 +27,7 @@ func NewProducer(options ...ProducerOption) *Producer {
 	return p
 }
 
+// Send implements msg.Producer.Send
 func (p *Producer) Send(_ context.Context, channel string, message msg.Message) error {
 	if result, exists := channels.Load(channel); exists {
 		destination := result.(chan msg.Message)
@@ -37,6 +40,7 @@ func (p *Producer) Send(_ context.Context, channel string, message msg.Message) 
 	return nil
 }
 
+// Close implements msg.Producer.Close
 func (p *Producer) Close(context.Context) error {
 	p.logger.Trace("closing message destination")
 	return nil

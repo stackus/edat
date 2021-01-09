@@ -12,6 +12,7 @@ import (
 	"github.com/stackus/edat/retry"
 )
 
+// PollingProcess implements MessageProcessor
 type PollingProcessor struct {
 	in                 MessageStore
 	out                msg.MessagePublisher
@@ -25,6 +26,9 @@ type PollingProcessor struct {
 	close              sync.Once
 }
 
+var _ MessageProcessor = (*PollingProcessor)(nil)
+
+// NewPollingProcessor constructs a new PollingProcessor
 func NewPollingProcessor(in MessageStore, out msg.MessagePublisher, options ...PollingProcessorOption) *PollingProcessor {
 	p := &PollingProcessor{
 		in:                 in,
@@ -47,6 +51,7 @@ func NewPollingProcessor(in MessageStore, out msg.MessagePublisher, options ...P
 	return p
 }
 
+// Start implements MessageProcessor.Start
 func (p *PollingProcessor) Start(ctx context.Context) error {
 	cCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -73,6 +78,7 @@ func (p *PollingProcessor) Start(ctx context.Context) error {
 	return group.Wait()
 }
 
+// Stop implements MessageProcessor.Stop
 func (p *PollingProcessor) Stop(ctx context.Context) (err error) {
 	p.close.Do(func() {
 		close(p.stopping)

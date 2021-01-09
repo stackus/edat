@@ -1,5 +1,6 @@
 package retry
 
+// Error constant texts
 const (
 	CannotBeRetried    = "this operation cannot be retried"
 	MaxRetriesExceeded = "this operation exceeded the maximum number of retries"
