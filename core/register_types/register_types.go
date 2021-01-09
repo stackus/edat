@@ -1,4 +1,4 @@
-package register_types
+package registertypes
 
 import (
 	"github.com/stackus/edat/msg"
