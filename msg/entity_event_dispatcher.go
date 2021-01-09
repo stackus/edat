@@ -7,6 +7,7 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// EntityEventHandlerFunc function handlers for msg.EntityEvent
 type EntityEventHandlerFunc func(context.Context, EntityEvent) error
 
 // EntityEventDispatcher is a MessageReceiver for DomainEvents

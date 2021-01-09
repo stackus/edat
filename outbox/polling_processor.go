@@ -114,25 +114,11 @@ func (p *PollingProcessor) processMessages(ctx context.Context) error {
 			p.logger.Trace("processing messages", log.Int("MessageCount", len(messages)))
 			ids := make([]string, 0, len(messages))
 			for _, message := range messages {
-				var outgoingMsg msg.Message
-
-				logger := p.logger.Sub(
-					log.String("MessageID", message.MessageID),
-					log.String("DestinationChannel", message.Destination),
-				)
-
-				outgoingMsg, err = message.ToMessage()
+				err := p.processMessage(ctx, message)
 				if err != nil {
-					logger.Error("error with transforming stored message", log.Error(err))
-					// TODO this has potential to halt processing; systems need to be in place to fix or address
 					return err
 				}
-				err = p.out.Publish(ctx, outgoingMsg)
-				if err != nil {
-					logger.Error("error publishing message", log.Error(err))
-					// TODO this has potential to halt processing; systems need to be in place to fix or address
-					return err
-				}
+
 				ids = append(ids, message.MessageID)
 			}
 
@@ -161,6 +147,31 @@ func (p *PollingProcessor) processMessages(ctx context.Context) error {
 		case <-pollingTimer.C:
 		}
 	}
+}
+
+func (p *PollingProcessor) processMessage(ctx context.Context, message Message) error {
+	var err error
+	var outgoingMsg msg.Message
+
+	logger := p.logger.Sub(
+		log.String("MessageID", message.MessageID),
+		log.String("DestinationChannel", message.Destination),
+	)
+
+	outgoingMsg, err = message.ToMessage()
+	if err != nil {
+		logger.Error("error with transforming stored message", log.Error(err))
+		// TODO this has potential to halt processing; systems need to be in place to fix or address
+		return err
+	}
+	err = p.out.Publish(ctx, outgoingMsg)
+	if err != nil {
+		logger.Error("error publishing message", log.Error(err))
+		// TODO this has potential to halt processing; systems need to be in place to fix or address
+		return err
+	}
+
+	return nil
 }
 
 func (p *PollingProcessor) purgePublished(ctx context.Context) error {

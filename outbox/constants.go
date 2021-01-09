@@ -6,6 +6,7 @@ import (
 	"github.com/stackus/edat/retry"
 )
 
+// Package defaults
 const (
 	DefaultMessagesPerPolling = 500
 	DefaultPollingInterval    = 500 * time.Millisecond
@@ -17,6 +18,7 @@ const (
 	DefaultRetryRandomizationFactor = 0.33
 )
 
+// DefaultRetryer with exponential backoff strategy
 var DefaultRetryer = retry.NewExponentialBackoff(
 	retry.WithBackoffInitialInterval(DefaultPollingInterval),
 	retry.WithBackoffMaxRetries(DefaultMaxRetries),

@@ -22,6 +22,7 @@ func NewLocalStep(action func(context.Context, core.SagaData) error) LocalStep {
 	}
 }
 
+// Compensation sets the compensating action for this step
 func (s LocalStep) Compensation(compensation func(context.Context, core.SagaData) error) LocalStep {
 	s.actions[isCompensating] = compensation
 	return s

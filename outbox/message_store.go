@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// MessageStore interface
 type MessageStore interface {
 	Fetch(ctx context.Context, limit int) ([]Message, error)
 	Save(ctx context.Context, message Message) error

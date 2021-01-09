@@ -25,6 +25,8 @@ func (a AggregateBase) ID() string {
 	return a.id
 }
 
+// setID is used internally by the AggregateRoot to apply IDs when loading existing Aggregates
+// nolint unused
 func (a *AggregateBase) setID(id string) {
 	a.id = id
 }

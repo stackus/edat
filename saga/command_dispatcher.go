@@ -9,6 +9,7 @@ import (
 	"github.com/stackus/edat/msg"
 )
 
+// CommandHandlerFunc function handlers for saga.Command
 type CommandHandlerFunc func(context.Context, Command) ([]msg.Reply, error)
 
 // CommandDispatcher is a MessageReceiver for Commands
@@ -46,21 +47,8 @@ func (d *CommandDispatcher) Handle(cmd core.Command, handler CommandHandlerFunc)
 
 // ReceiveMessage implements MessageReceiver.ReceiveMessage
 func (d *CommandDispatcher) ReceiveMessage(ctx context.Context, message msg.Message) error {
-	commandName, err := message.Headers().GetRequired(msg.MessageCommandName)
+	commandName, sagaID, sagaName, err := d.commandMessageInfo(message)
 	if err != nil {
-		d.logger.Error("error reading command name", log.Error(err))
-		return nil
-	}
-
-	sagaID, err := message.Headers().GetRequired(MessageCommandSagaID)
-	if err != nil {
-		d.logger.Error("error reading saga id", log.Error(err))
-		return nil
-	}
-
-	sagaName, err := message.Headers().GetRequired(MessageCommandSagaName)
-	if err != nil {
-		d.logger.Error("error reading saga name", log.Error(err))
 		return nil
 	}
 
@@ -118,18 +106,40 @@ func (d *CommandDispatcher) ReceiveMessage(ctx context.Context, message msg.Mess
 	return nil
 }
 
+func (d *CommandDispatcher) commandMessageInfo(message msg.Message) (string, string, string, error) {
+	var err error
+	var commandName, sagaID, sagaName string
+
+	commandName, err = message.Headers().GetRequired(msg.MessageCommandName)
+	if err != nil {
+		d.logger.Error("error reading command name", log.Error(err))
+		return "", "", "", err
+	}
+
+	sagaID, err = message.Headers().GetRequired(MessageReplySagaID)
+	if err != nil {
+		d.logger.Error("error reading saga id", log.Error(err))
+		return "", "", "", err
+	}
+
+	sagaName, err = message.Headers().GetRequired(MessageReplySagaName)
+	if err != nil {
+		d.logger.Error("error reading saga name", log.Error(err))
+		return "", "", "", err
+	}
+
+	return commandName, sagaID, sagaName, nil
+}
+
 func (d *CommandDispatcher) sendReplies(ctx context.Context, replyChannel string, replies []msg.Reply, correlationHeaders msg.Headers) error {
 	for _, reply := range replies {
-		err := d.publisher.PublishReply(ctx, reply.Reply(),
+		if err := d.publisher.PublishReply(ctx, reply.Reply(),
 			msg.WithHeaders(correlationHeaders),
 			msg.WithHeaders(reply.Headers()),
 			msg.WithDestinationChannel(replyChannel),
-		)
-		if err != nil {
+		); err != nil {
 			return err
 		}
-
-		return nil
 	}
 
 	return nil

@@ -8,22 +8,27 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// CommandMessagePublisher interface
 type CommandMessagePublisher interface {
 	PublishCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error
 }
 
+// EntityEventMessagePublisher interface
 type EntityEventMessagePublisher interface {
 	PublishEntityEvents(ctx context.Context, entity core.Entity, options ...MessageOption) error
 }
 
+// EventMessagePublisher interface
 type EventMessagePublisher interface {
 	PublishEvent(ctx context.Context, event core.Event, options ...MessageOption) error
 }
 
+// ReplyMessagePublisher interface
 type ReplyMessagePublisher interface {
 	PublishReply(ctx context.Context, reply core.Reply, options ...MessageOption) error
 }
 
+// MessagePublisher interface
 type MessagePublisher interface {
 	Publish(ctx context.Context, message Message) error
 }
@@ -125,7 +130,7 @@ func (p *Publisher) PublishReply(ctx context.Context, reply core.Reply, options 
 	return err
 }
 
-// PublishReply serializes entity events into messages with entity specific headers and publishes it to a producer
+// PublishEntityEvents serializes entity events into messages with entity specific headers and publishes it to a producer
 func (p Publisher) PublishEntityEvents(ctx context.Context, entity core.Entity, options ...MessageOption) error {
 	msgOptions := []MessageOption{WithHeaders(map[string]string{
 		MessageEventEntityID:   entity.ID(),

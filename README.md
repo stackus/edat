@@ -1,4 +1,4 @@
-![](https://github.com/stackus/edat/workflows/Run%20CI/badge.svg)
+![](https://github.com/stackus/edat/workflows/CI/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/stackus/edat)](https://goreportcard.com/report/github.com/stackus/edat)
 [![](https://godoc.org/github.com/stackus/edat?status.svg)](https://pkg.go.dev/github.com/stackus/edat)
 

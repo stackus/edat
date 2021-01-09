@@ -1,5 +1,6 @@
 package retry
 
+// NewConstantBackoff constructs a Backoff strategy with a exponential backoff retry rate
 func NewExponentialBackoff(options ...BackoffOption) *Backoff {
 	// Set some defaults for exponential backoff
 	expOptions := append([]BackoffOption{WithBackoffMultiplier(DefaultMultiplier)}, options...)

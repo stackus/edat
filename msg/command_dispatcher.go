@@ -8,6 +8,7 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// CommandHandlerFunc function handlers for msg.Command
 type CommandHandlerFunc func(context.Context, Command) ([]Reply, error)
 
 // CommandDispatcher is a MessageReceiver for Commands

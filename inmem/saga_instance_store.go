@@ -9,6 +9,7 @@ import (
 	"github.com/stackus/edat/saga"
 )
 
+// SagaInstanceStore implements saga.InstanceStore
 type SagaInstanceStore struct {
 	instances sync.Map
 }
@@ -24,12 +25,14 @@ type instanceData struct {
 
 var _ saga.InstanceStore = (*SagaInstanceStore)(nil)
 
+// NewSagaInstanceStore constructs a new SagaInstanceStore
 func NewSagaInstanceStore() *SagaInstanceStore {
 	return &SagaInstanceStore{
 		instances: sync.Map{},
 	}
 }
 
+// Find implements saga.InstanceStore.Find
 func (s *SagaInstanceStore) Find(_ context.Context, sagaName, sagaID string) (*saga.Instance, error) {
 	if dataT, exists := s.instances.Load(s.instanceID(sagaName, sagaID)); exists {
 		data := dataT.(instanceData)
@@ -42,10 +45,12 @@ func (s *SagaInstanceStore) Find(_ context.Context, sagaName, sagaID string) (*s
 	return nil, nil
 }
 
+// Save implements saga.InstanceStore.Save
 func (s *SagaInstanceStore) Save(_ context.Context, instance *saga.Instance) error {
 	return s.save(instance)
 }
 
+// Update implements saga.InstanceStore.Update
 func (s *SagaInstanceStore) Update(_ context.Context, instance *saga.Instance) error {
 	return s.save(instance)
 }

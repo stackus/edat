@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// Backoff is a configurable retry backoff strategy
 type Backoff struct {
 	maxRetries      int
 	initialInterval time.Duration
@@ -17,6 +18,7 @@ type Backoff struct {
 	randomization   float64
 }
 
+// NewBackoff constructs a new Backoff
 func NewBackoff(options ...BackoffOption) *Backoff {
 	b := &Backoff{
 		maxRetries:      DefaultMaxRetries,
@@ -39,6 +41,7 @@ func NewBackoff(options ...BackoffOption) *Backoff {
 	return b
 }
 
+// Retry executes a command until it succeeds, encounters an ErrDoNotRetry error, or reaches the backoff strategy limits
 func (b Backoff) Retry(ctx context.Context, fn func() error) error {
 	tries := 0
 	started := time.Now()

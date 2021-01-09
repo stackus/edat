@@ -16,6 +16,7 @@ const (
 	CausationIDHeader   = "X-Causation-Id"
 )
 
+// RequestContext is an http.Handler middleware that sets the id, correlation, and causation ids into context
 func RequestContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestID := r.Header.Get(RequestIDHeader)
@@ -37,7 +38,8 @@ func RequestContext(next http.Handler) http.Handler {
 	})
 }
 
-func SetRequestHeaders(ctx context.Context, w http.ResponseWriter) {
+// SetResponseHeaders puts the id, correlation, and causation ids into the outgoing http response
+func SetResponseHeaders(ctx context.Context, w http.ResponseWriter) {
 	w.Header().Set(RequestIDHeader, core.GetRequestID(ctx))
 	w.Header().Set(CorrelationIDHeader, core.GetCorrelationID(ctx))
 	w.Header().Set(CausationIDHeader, core.GetCausationID(ctx))

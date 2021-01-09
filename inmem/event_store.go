@@ -17,7 +17,6 @@ type EventStore struct {
 
 type eventMsg struct {
 	eventName string
-	version   int
 	event     json.RawMessage
 }
 

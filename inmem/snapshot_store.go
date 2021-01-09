@@ -10,6 +10,7 @@ import (
 	"github.com/stackus/edat/es"
 )
 
+// SnapshotStore implements es.AggregateRootStore
 type SnapshotStore struct {
 	strategy  es.SnapshotStrategy
 	snapshots sync.Map
@@ -24,6 +25,7 @@ type snapshotMsg struct {
 
 var _ es.AggregateRootStore = (*SnapshotStore)(nil)
 
+// NewSnapshotStore constructs a new SnapshotStore and returns es.AggregateRootStoreMiddleware
 func NewSnapshotStore(options ...SnapshotStoreOption) es.AggregateRootStoreMiddleware {
 	s := &SnapshotStore{
 		strategy:  es.DefaultSnapshotStrategy,
@@ -40,6 +42,7 @@ func NewSnapshotStore(options ...SnapshotStoreOption) es.AggregateRootStoreMiddl
 	}
 }
 
+// Load implements es.AggregateRootStore.Load
 func (s *SnapshotStore) Load(ctx context.Context, root *es.AggregateRoot) error {
 	name := root.AggregateName()
 	id := root.AggregateID()
@@ -60,6 +63,7 @@ func (s *SnapshotStore) Load(ctx context.Context, root *es.AggregateRoot) error 
 	return s.next.Load(ctx, root)
 }
 
+// Save implements es.AggregateRootStore.Save
 func (s *SnapshotStore) Save(ctx context.Context, root *es.AggregateRoot) error {
 	err := s.next.Save(ctx, root)
 	if err != nil {

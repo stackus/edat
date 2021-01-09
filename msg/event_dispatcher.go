@@ -7,6 +7,7 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// EventHandlerFunc function handlers for msg.Event
 type EventHandlerFunc func(context.Context, Event) error
 
 // EventDispatcher is a MessageReceiver for Events

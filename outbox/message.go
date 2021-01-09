@@ -6,6 +6,7 @@ import (
 	"github.com/stackus/edat/msg"
 )
 
+// Message struct for the temporary form of a Producers msg.Message
 type Message struct {
 	MessageID   string
 	Destination string
@@ -19,6 +20,7 @@ type message struct {
 	payload []byte
 }
 
+// ToMessage converts this form back to msg.Message or returns an error when headers cannot be unmarshalled
 func (m Message) ToMessage() (msg.Message, error) {
 	var headers map[string]string
 

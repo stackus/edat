@@ -13,10 +13,9 @@ type Message interface {
 
 // Message is used to pass events, commands, and replies to and from servers
 type message struct {
-	id          string
-	destination string
-	headers     Headers
-	payload     []byte
+	id      string
+	headers Headers
+	payload []byte
 }
 
 // NewMessage message constructor

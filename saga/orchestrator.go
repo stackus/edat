@@ -41,6 +41,7 @@ func NewOrchestrator(definition Definition, store InstanceStore, publisher msg.C
 	return o
 }
 
+// Start creates a new instance of the saga and begins execution
 func (o *Orchestrator) Start(ctx context.Context, sagaData core.SagaData) (*Instance, error) {
 	instance := &Instance{
 		sagaID:   uuid.New().String(),
@@ -76,26 +77,15 @@ func (o *Orchestrator) Start(ctx context.Context, sagaData core.SagaData) (*Inst
 	return instance, err
 }
 
+// ReplyChannel returns the channel replies are to be received from msg.Subscribers
 func (o *Orchestrator) ReplyChannel() string {
 	return o.definition.ReplyChannel()
 }
 
 // ReceiveMessage implements msg.MessageReceiver.ReceiveMessage
 func (o *Orchestrator) ReceiveMessage(ctx context.Context, message msg.Message) error {
-	replyName, err := message.Headers().GetRequired(msg.MessageReplyName)
+	replyName, sagaID, sagaName, err := o.replyMessageInfo(message)
 	if err != nil {
-		return err
-	}
-
-	sagaID, err := message.Headers().GetRequired(MessageReplySagaID)
-	if err != nil {
-		o.logger.Error("error reading saga id", log.Error(err))
-		return nil
-	}
-
-	sagaName, err := message.Headers().GetRequired(MessageReplySagaName)
-	if err != nil {
-		o.logger.Error("error reading saga name", log.Error(err))
 		return nil
 	}
 
@@ -145,6 +135,31 @@ func (o *Orchestrator) ReceiveMessage(ctx context.Context, message msg.Message) 
 	return nil
 }
 
+func (o *Orchestrator) replyMessageInfo(message msg.Message) (string, string, string, error) {
+	var err error
+	var replyName, sagaID, sagaName string
+
+	replyName, err = message.Headers().GetRequired(msg.MessageReplyName)
+	if err != nil {
+		o.logger.Error("error reading reply name", log.Error(err))
+		return "", "", "", err
+	}
+
+	sagaID, err = message.Headers().GetRequired(MessageReplySagaID)
+	if err != nil {
+		o.logger.Error("error reading saga id", log.Error(err))
+		return "", "", "", err
+	}
+
+	sagaName, err = message.Headers().GetRequired(MessageReplySagaName)
+	if err != nil {
+		o.logger.Error("error reading saga name", log.Error(err))
+		return "", "", "", err
+	}
+
+	return replyName, sagaID, sagaName, nil
+}
+
 func (o *Orchestrator) processResults(ctx context.Context, instance *Instance, results *stepResults) error {
 	var err error
 
@@ -156,14 +171,12 @@ func (o *Orchestrator) processResults(ctx context.Context, instance *Instance, r
 	for {
 		if results.failure != nil {
 			logger.Trace("handling local failure result")
-			// handle a local failure outcome and kick off the next step
 			results, err = o.handleReply(ctx, results.updatedStepContext, results.updatedSagaData, msg.WithFailure())
 			if err != nil {
 				logger.Error("error handling local failure result", log.Error(err))
 				return err
 			}
 		} else {
-			// send commands
 			for _, command := range results.commands {
 				err = o.publisher.PublishCommand(ctx, o.definition.ReplyChannel(), command, WithSagaInfo(instance))
 				if err != nil {
@@ -177,16 +190,8 @@ func (o *Orchestrator) processResults(ctx context.Context, instance *Instance, r
 				instance.sagaData = results.updatedSagaData
 			}
 
-			// arrived at the end?
 			if results.updatedStepContext.ended {
-				if instance.compensating {
-					logger.Trace("executing saga compensated hook")
-					o.definition.OnHook(SagaCompensated, instance)
-				} else {
-					logger.Trace("executing saga completed hook")
-					o.definition.OnHook(SagaCompleted, instance)
-				}
-				logger.Trace("saga has finished all steps")
+				o.processEnd(instance)
 			}
 
 			err = o.instanceStore.Update(ctx, instance)
@@ -211,6 +216,22 @@ func (o *Orchestrator) processResults(ctx context.Context, instance *Instance, r
 	}
 
 	return nil
+}
+
+func (o *Orchestrator) processEnd(instance *Instance) {
+	logger := o.logger.Sub(
+		log.String("SagaName", o.definition.SagaName()),
+		log.String("SagaID", instance.sagaID),
+	)
+
+	if instance.compensating {
+		logger.Trace("executing saga compensated hook")
+		o.definition.OnHook(SagaCompensated, instance)
+	} else {
+		logger.Trace("executing saga completed hook")
+		o.definition.OnHook(SagaCompleted, instance)
+	}
+	logger.Trace("saga has finished all steps")
 }
 
 func (o *Orchestrator) handleReply(ctx context.Context, stepCtx stepContext, sagaData core.SagaData, message msg.Reply) (*stepResults, error) {
