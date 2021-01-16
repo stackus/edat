@@ -116,13 +116,13 @@ func (d *CommandDispatcher) commandMessageInfo(message msg.Message) (string, str
 		return "", "", "", err
 	}
 
-	sagaID, err = message.Headers().GetRequired(MessageReplySagaID)
+	sagaID, err = message.Headers().GetRequired(MessageCommandSagaID)
 	if err != nil {
 		d.logger.Error("error reading saga id", log.Error(err))
 		return "", "", "", err
 	}
 
-	sagaName, err = message.Headers().GetRequired(MessageReplySagaName)
+	sagaName, err = message.Headers().GetRequired(MessageCommandSagaName)
 	if err != nil {
 		d.logger.Error("error reading saga name", log.Error(err))
 		return "", "", "", err
