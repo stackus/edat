@@ -145,7 +145,7 @@ func (s *Subscriber) chain(receiver MessageReceiver) MessageReceiver {
 
 	r := s.middlewares[len(s.middlewares)-1](receiver)
 	for i := len(s.middlewares) - 2; i >= 0; i-- {
-		r = s.middlewares[i](receiver)
+		r = s.middlewares[i](r)
 	}
 
 	return r
