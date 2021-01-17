@@ -23,7 +23,7 @@ type replyMessage struct {
 
 // NewReply constructs a new reply with headers
 func NewReply(reply core.Reply, headers Headers) Reply {
-	return replyMessage{reply, headers}
+	return &replyMessage{reply, headers}
 }
 
 // Reply returns the core.Reply
