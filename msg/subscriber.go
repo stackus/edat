@@ -65,13 +65,15 @@ func (s *Subscriber) Subscribe(channel string, receiver MessageReceiver) {
 
 // Start begins listening to all of the channels sending received messages into them
 func (s *Subscriber) Start(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(ctx)
+	cCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	group, ctx := errgroup.WithContext(ctx)
+	group, gCtx := errgroup.WithContext(cCtx)
 
 	group.Go(func() error {
-		if <-s.stopping; true {
+		select {
+		case <-s.stopping:
 			cancel()
+		case <-gCtx.Done():
 		}
 
 		return nil
@@ -86,7 +88,7 @@ func (s *Subscriber) Start(ctx context.Context) error {
 
 		group.Go(func() error {
 			defer s.subscriberWg.Done()
-			err := s.consumer.Listen(ctx, channel, func(mCtx context.Context, message Message) error {
+			err := s.consumer.Listen(gCtx, channel, func(mCtx context.Context, message Message) error {
 				mCtx = core.SetRequestContext(
 					mCtx,
 					message.ID(),
