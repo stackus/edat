@@ -52,11 +52,15 @@ func GetCausationID(ctx context.Context) string {
 // Correlation and Causation IDs will use the RequestID if blank ID values are provided
 func SetRequestContext(ctx context.Context, requestID, correlationID, causationID string) context.Context {
 	ctx = context.WithValue(ctx, requestIDKey, requestID)
+
+	// CorrelationIDs point back to the first request
 	if correlationID == "" {
 		ctx = context.WithValue(ctx, correlationIDKey, requestID)
 	} else {
 		ctx = context.WithValue(ctx, correlationIDKey, correlationID)
 	}
+
+	// CausationIDs point back to the previous request
 	if causationID == "" {
 		ctx = context.WithValue(ctx, causationIDKey, requestID)
 	} else {

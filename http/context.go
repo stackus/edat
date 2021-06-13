@@ -34,6 +34,7 @@ func RequestContext(next http.Handler) http.Handler {
 
 		ctx := core.SetRequestContext(r.Context(), requestID, correlationID, causationID)
 
+		w.Header().Set(RequestIDHeader, core.GetRequestID(ctx))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
