@@ -212,7 +212,7 @@ func TestSubscriber_Subscribe(t *testing.T) {
 					},
 				},
 			},
-			wantPanic: true,
+			wantPanic: false,
 		},
 	}
 	for name, tt := range tests {
