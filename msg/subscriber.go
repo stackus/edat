@@ -2,7 +2,6 @@ package msg
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -21,7 +20,7 @@ type Subscriber struct {
 	consumer     Consumer
 	logger       log.Logger
 	middlewares  []func(MessageReceiver) MessageReceiver
-	receivers    map[string]MessageReceiver
+	receivers    map[string][]MessageReceiver
 	stopping     chan struct{}
 	subscriberWg sync.WaitGroup
 	close        sync.Once
@@ -31,7 +30,7 @@ type Subscriber struct {
 func NewSubscriber(consumer Consumer, options ...SubscriberOption) *Subscriber {
 	s := &Subscriber{
 		consumer:  consumer,
-		receivers: make(map[string]MessageReceiver),
+		receivers: make(map[string][]MessageReceiver),
 		stopping:  make(chan struct{}),
 		logger:    log.DefaultLogger,
 	}
@@ -56,11 +55,11 @@ func (s *Subscriber) Use(mws ...func(MessageReceiver) MessageReceiver) {
 
 // Subscribe connects the receiver with messages from the channel on the consumer
 func (s *Subscriber) Subscribe(channel string, receiver MessageReceiver) {
-	if _, exists := s.receivers[channel]; exists {
-		panic(fmt.Sprintf("channel `%s` has already been subscribed", channel))
+	if _, exists := s.receivers[channel]; !exists {
+		s.receivers[channel] = []MessageReceiver{}
 	}
 	s.logger.Trace("subscribed", log.String("Channel", channel))
-	s.receivers[channel] = s.chain(receiver)
+	s.receivers[channel] = append(s.receivers[channel], s.chain(receiver))
 }
 
 // Start begins listening to all of the channels sending received messages into them
@@ -82,13 +81,13 @@ func (s *Subscriber) Start(ctx context.Context) error {
 	for c, r := range s.receivers {
 		// reassign to avoid issues with anonymous func
 		channel := c
-		receiver := r
+		receivers := r
 
 		s.subscriberWg.Add(1)
 
 		group.Go(func() error {
 			defer s.subscriberWg.Done()
-			err := s.consumer.Listen(gCtx, channel, func(mCtx context.Context, message Message) error {
+			receiveMessageFunc := func(mCtx context.Context, message Message) error {
 				mCtx = core.SetRequestContext(
 					mCtx,
 					message.ID(),
@@ -103,8 +102,17 @@ func (s *Subscriber) Start(ctx context.Context) error {
 					log.Int("PayloadSize", len(message.Payload())),
 				)
 
-				return receiver.ReceiveMessage(mCtx, message)
-			})
+				rGroup, rCtx := errgroup.WithContext(mCtx)
+				for _, r2 := range receivers {
+					receiver := r2
+					rGroup.Go(func() error {
+						return receiver.ReceiveMessage(rCtx, message)
+					})
+				}
+
+				return rGroup.Wait()
+			}
+			err := s.consumer.Listen(gCtx, channel, receiveMessageFunc)
 			if err != nil {
 				s.logger.Error("consumer stopped and returned an error", log.Error(err))
 				return err

@@ -2,6 +2,7 @@ package msg
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/stackus/edat/core"
@@ -43,6 +44,7 @@ var _ MessagePublisher = (*Publisher)(nil)
 type Publisher struct {
 	producer Producer
 	logger   log.Logger
+	close    sync.Once
 }
 
 // NewPublisher constructs a new Publisher
@@ -62,7 +64,7 @@ func NewPublisher(producer Producer, options ...PublisherOption) *Publisher {
 }
 
 // PublishCommand serializes a command into a message with command specific headers and publishes it to a producer
-func (p Publisher) PublishCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error {
+func (p *Publisher) PublishCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error {
 	msgOptions := []MessageOption{WithHeaders(map[string]string{
 		MessageCommandName:         command.CommandName(),
 		MessageCommandReplyChannel: replyChannel,
@@ -131,7 +133,7 @@ func (p *Publisher) PublishReply(ctx context.Context, reply core.Reply, options 
 }
 
 // PublishEntityEvents serializes entity events into messages with entity specific headers and publishes it to a producer
-func (p Publisher) PublishEntityEvents(ctx context.Context, entity core.Entity, options ...MessageOption) error {
+func (p *Publisher) PublishEntityEvents(ctx context.Context, entity core.Entity, options ...MessageOption) error {
 	msgOptions := []MessageOption{WithHeaders(map[string]string{
 		MessageEventEntityID:   entity.ID(),
 		MessageEventEntityName: entity.EntityName(),
@@ -161,7 +163,7 @@ func (p Publisher) PublishEntityEvents(ctx context.Context, entity core.Entity, 
 }
 
 // PublishEvent serializes an event into a message with event specific headers and publishes it to a producer
-func (p Publisher) PublishEvent(ctx context.Context, event core.Event, options ...MessageOption) error {
+func (p *Publisher) PublishEvent(ctx context.Context, event core.Event, options ...MessageOption) error {
 	msgOptions := []MessageOption{WithHeaders(map[string]string{
 		MessageEventName: event.EventName(),
 	})}
@@ -206,6 +208,7 @@ func (p *Publisher) Publish(ctx context.Context, message Message) error {
 
 	message.Headers()[MessageDate] = time.Now().Format(time.RFC3339)
 
+	// Published messages are request boundaries
 	if id, exists := message.Headers()[MessageCorrelationID]; !exists || id == "" {
 		message.Headers()[MessageCorrelationID] = core.GetCorrelationID(ctx)
 	}
@@ -234,6 +237,11 @@ func (p *Publisher) Publish(ctx context.Context, message Message) error {
 }
 
 // Stop stops the publisher and underlying producer
-func (p *Publisher) Stop(ctx context.Context) error {
-	return p.producer.Close(ctx)
+func (p *Publisher) Stop(ctx context.Context) (err error) {
+	defer p.logger.Trace("publisher stopped")
+	p.close.Do(func() {
+		err = p.producer.Close(ctx)
+	})
+
+	return
 }
