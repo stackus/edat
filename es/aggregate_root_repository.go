@@ -22,7 +22,7 @@ type AggregateRootRepository struct {
 	logger      log.Logger
 }
 
-// AggregateRootStoreMiddleware interface for embedating stores
+// AggregateRootStoreMiddleware interface for embedding stores
 type AggregateRootStoreMiddleware func(store AggregateRootStore) AggregateRootStore
 
 // ErrAggregateNotFound is returned when no root was found for a given aggregate id
