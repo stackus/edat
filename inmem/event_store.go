@@ -52,7 +52,7 @@ func (s *EventStore) Load(_ context.Context, root *es.AggregateRoot) error {
 			return nil
 		}
 
-		for _, message := range messages[version+1:] {
+		for _, message := range messages[version:] {
 			event, err := core.DeserializeEvent(message.eventName, message.event)
 			if err != nil {
 				return err
@@ -85,7 +85,7 @@ func (s *EventStore) Save(_ context.Context, root *es.AggregateRoot) error {
 	streamLength := len(s.events[streamID])
 
 	if streamLength != version {
-		return fmt.Errorf("stream has been modified and cannot write event: expected: %d, got: %d", version, streamLength)
+		return es.ErrAggregateVersionMismatch
 	}
 
 	for _, event := range root.Events() {

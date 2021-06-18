@@ -65,10 +65,12 @@ func NewPublisher(producer Producer, options ...PublisherOption) *Publisher {
 
 // PublishCommand serializes a command into a message with command specific headers and publishes it to a producer
 func (p *Publisher) PublishCommand(ctx context.Context, replyChannel string, command core.Command, options ...MessageOption) error {
-	msgOptions := []MessageOption{WithHeaders(map[string]string{
-		MessageCommandName:         command.CommandName(),
-		MessageCommandReplyChannel: replyChannel,
-	})}
+	msgOptions := []MessageOption{
+		WithHeaders(map[string]string{
+			MessageCommandName:         command.CommandName(),
+			MessageCommandReplyChannel: replyChannel,
+		}),
+	}
 
 	if v, ok := command.(interface{ DestinationChannel() string }); ok {
 		msgOptions = append(msgOptions, WithDestinationChannel(v.DestinationChannel()))
@@ -100,9 +102,11 @@ func (p *Publisher) PublishCommand(ctx context.Context, replyChannel string, com
 
 // PublishReply serializes a reply into a message with reply specific headers and publishes it to a producer
 func (p *Publisher) PublishReply(ctx context.Context, reply core.Reply, options ...MessageOption) error {
-	msgOptions := []MessageOption{WithHeaders(map[string]string{
-		MessageReplyName: reply.ReplyName(),
-	})}
+	msgOptions := []MessageOption{
+		WithHeaders(map[string]string{
+			MessageReplyName: reply.ReplyName(),
+		}),
+	}
 
 	if v, ok := reply.(interface{ DestinationChannel() string }); ok {
 		msgOptions = append(msgOptions, WithDestinationChannel(v.DestinationChannel()))
@@ -134,11 +138,13 @@ func (p *Publisher) PublishReply(ctx context.Context, reply core.Reply, options 
 
 // PublishEntityEvents serializes entity events into messages with entity specific headers and publishes it to a producer
 func (p *Publisher) PublishEntityEvents(ctx context.Context, entity core.Entity, options ...MessageOption) error {
-	msgOptions := []MessageOption{WithHeaders(map[string]string{
-		MessageEventEntityID:   entity.ID(),
-		MessageEventEntityName: entity.EntityName(),
-		MessageChannel:         entity.EntityName(), // allow entity name and channel to overlap
-	})}
+	msgOptions := []MessageOption{
+		WithHeaders(map[string]string{
+			MessageEventEntityID:   entity.ID(),
+			MessageEventEntityName: entity.EntityName(),
+			MessageChannel:         entity.EntityName(), // allow entity name and channel to overlap
+		}),
+	}
 
 	if v, ok := entity.(interface{ DestinationChannel() string }); ok {
 		msgOptions = append(msgOptions, WithDestinationChannel(v.DestinationChannel()))
@@ -164,9 +170,11 @@ func (p *Publisher) PublishEntityEvents(ctx context.Context, entity core.Entity,
 
 // PublishEvent serializes an event into a message with event specific headers and publishes it to a producer
 func (p *Publisher) PublishEvent(ctx context.Context, event core.Event, options ...MessageOption) error {
-	msgOptions := []MessageOption{WithHeaders(map[string]string{
-		MessageEventName: event.EventName(),
-	})}
+	msgOptions := []MessageOption{
+		WithHeaders(map[string]string{
+			MessageEventName: event.EventName(),
+		}),
+	}
 
 	if v, ok := event.(interface{ DestinationChannel() string }); ok {
 		msgOptions = append(msgOptions, WithDestinationChannel(v.DestinationChannel()))

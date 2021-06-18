@@ -28,6 +28,9 @@ type AggregateRootStoreMiddleware func(store AggregateRootStore) AggregateRootSt
 // ErrAggregateNotFound is returned when no root was found for a given aggregate id
 var ErrAggregateNotFound = errors.New("aggregate not found")
 
+// ErrAggregateVersionMismatch should be returned by stores when new events cannot be appended due to version conflicts
+var ErrAggregateVersionMismatch = errors.New("aggregate version mismatch")
+
 // NewAggregateRootRepository constructs a new AggregateRootRepository
 func NewAggregateRootRepository(constructor func() Aggregate, store AggregateRootStore) *AggregateRootRepository {
 	r := &AggregateRootRepository{
@@ -71,6 +74,11 @@ func (r *AggregateRootRepository) Update(ctx context.Context, aggregateID string
 	err := r.store.Load(ctx, root)
 	if err != nil {
 		return nil, err
+	}
+
+	// require aggregates to exist to be "Updated"
+	if root.version == aggregateNeverCommitted {
+		return nil, ErrAggregateNotFound
 	}
 
 	return root, r.save(ctx, command, root)

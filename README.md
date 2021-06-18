@@ -51,9 +51,11 @@ edat provides opinionated plumbing to help with many aspects of the development 
 - [edat-msgpack](https://github.com/stackus/edat-msgpack) MessagePack
 
 ## Contributing
+
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
 ## License
+
 MIT
