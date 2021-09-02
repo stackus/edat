@@ -33,7 +33,7 @@ func NewSnapshotStore(options ...SnapshotStoreOption) es.AggregateRootStoreMiddl
 	}
 
 	for _, option := range options {
-		option(s)
+		option.configureSnapshotStore(s)
 	}
 
 	return func(next es.AggregateRootStore) es.AggregateRootStore {
@@ -74,7 +74,7 @@ func (s *SnapshotStore) Save(ctx context.Context, root *es.AggregateRoot) error 
 		return nil
 	}
 
-	snapshot, err := root.Aggregate().ToSnapshot()
+	snapshot, err := root.ToSnapshot()
 	if err != nil {
 		return err
 	}

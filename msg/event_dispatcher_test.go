@@ -135,7 +135,7 @@ func TestEventDispatcher_ReceiveMessage(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			d := msg.NewEventDispatcher(msg.WithEventDispatcherLogger(tt.fields.logger))
+			d := msg.NewEventDispatcher(msg.WithLogger(tt.fields.logger))
 			for _, handler := range tt.fields.handlers {
 				d.Handle(handler.evt, handler.fn)
 			}

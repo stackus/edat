@@ -10,6 +10,11 @@ import (
 	"github.com/stackus/edat/es"
 )
 
+// EventStoreOption options for EventStore
+type EventStoreOption interface {
+	configureEventStore(*EventStore)
+}
+
 // EventStore implements es.AggregateRootStore
 type EventStore struct {
 	events map[string][]eventMsg
@@ -31,7 +36,7 @@ func NewEventStore(options ...EventStoreOption) *EventStore {
 	}
 
 	for _, option := range options {
-		option(s)
+		option.configureEventStore(s)
 	}
 
 	return s

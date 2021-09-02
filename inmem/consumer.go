@@ -10,6 +10,11 @@ import (
 
 var channels = sync.Map{}
 
+// ConsumerOption options for Consumer
+type ConsumerOption interface {
+	configureConsumer(*Consumer)
+}
+
 // Consumer implements msg.Consumer
 type Consumer struct {
 	logger log.Logger
@@ -24,32 +29,33 @@ func NewConsumer(options ...ConsumerOption) *Consumer {
 	}
 
 	for _, option := range options {
-		option(c)
+		option.configureConsumer(c)
 	}
 
 	return c
 }
 
-// Listen implements msg.Consumer.Listen
-func (c *Consumer) Listen(ctx context.Context, channel string, consumer msg.ReceiveMessageFunc) error {
-	result, _ := channels.LoadOrStore(channel, make(chan msg.Message))
+func (c *Consumer) Listener(channel string) msg.Listener {
+	return msg.ListenerFunc(func(ctx context.Context, receiverFn msg.ReceiveMessageFunc) error {
+		result, _ := channels.LoadOrStore(channel, make(chan msg.Message))
 
-	messages := result.(chan msg.Message)
+		messages := result.(chan msg.Message)
 
-	for {
-		select {
-		case message, ok := <-messages:
-			if !ok {
+		for {
+			select {
+			case message, ok := <-messages:
+				if !ok {
+					return nil
+				}
+				err := receiverFn(ctx, message)
+				if err != nil {
+					c.logger.Error("error consuming message", log.Error(err))
+				}
+			case <-ctx.Done():
 				return nil
 			}
-			err := consumer(ctx, message)
-			if err != nil {
-				c.logger.Error("error consuming message", log.Error(err))
-			}
-		case <-ctx.Done():
-			return nil
 		}
-	}
+	})
 }
 
 // Close implements msg.Consumer.Close

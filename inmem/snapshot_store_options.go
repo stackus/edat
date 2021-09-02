@@ -5,11 +5,19 @@ import (
 )
 
 // SnapshotStoreOption options for SnapshotStore
-type SnapshotStoreOption func(store *SnapshotStore)
+type SnapshotStoreOption interface {
+	configureSnapshotStore(*SnapshotStore)
+}
 
-// WithSnapshotStoreStrategy sets the snapshotting strategy for SnapshotStore
-func WithSnapshotStoreStrategy(strategy es.SnapshotStrategy) SnapshotStoreOption {
-	return func(store *SnapshotStore) {
-		store.strategy = strategy
-	}
+type StrategyOption struct {
+	es.SnapshotStrategy
+}
+
+// WithStrategy sets the snapshotting strategy for SnapshotStore
+func WithStrategy(strategy es.SnapshotStrategy) SnapshotStoreOption {
+	return StrategyOption{strategy}
+}
+
+func (o StrategyOption) configureSnapshotStore(store *SnapshotStore) {
+	store.strategy = o
 }

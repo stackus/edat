@@ -177,7 +177,7 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			d := msg.NewCommandDispatcher(tt.fields.publisher, msg.WithCommandDispatcherLogger(tt.fields.logger))
+			d := msg.NewCommandDispatcher(tt.fields.publisher, msg.WithLogger(tt.fields.logger))
 			for _, handler := range tt.fields.handlers {
 				d.Handle(handler.cmd, handler.fn)
 			}

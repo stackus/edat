@@ -85,7 +85,7 @@ func TestPublisher_Publish(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			p := msg.NewPublisher(tt.fields.producer, msg.WithPublisherLogger(tt.fields.logger))
+			p := msg.NewPublisher(tt.fields.producer, msg.WithLogger(tt.fields.logger))
 			if err := p.Publish(tt.args.ctx, tt.args.message); (err != nil) != tt.wantErr {
 				t.Errorf("Publish() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -187,7 +187,7 @@ func TestPublisher_PublishCommand(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			p := msg.NewPublisher(tt.fields.producer, msg.WithPublisherLogger(tt.fields.logger))
+			p := msg.NewPublisher(tt.fields.producer, msg.WithLogger(tt.fields.logger))
 			if err := p.PublishCommand(tt.args.ctx, tt.args.replyChannel, tt.args.command, tt.args.options...); (err != nil) != tt.wantErr {
 				t.Errorf("PublishCommand() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -284,7 +284,7 @@ func TestPublisher_PublishEvent(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			p := msg.NewPublisher(tt.fields.producer, msg.WithPublisherLogger(tt.fields.logger))
+			p := msg.NewPublisher(tt.fields.producer, msg.WithLogger(tt.fields.logger))
 			if err := p.PublishEvent(tt.args.ctx, tt.args.event, tt.args.options...); (err != nil) != tt.wantErr {
 				t.Errorf("PublishEvent() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -391,7 +391,7 @@ func TestPublisher_PublishEntityEvents(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			p := msg.NewPublisher(tt.fields.producer, msg.WithPublisherLogger(tt.fields.logger))
+			p := msg.NewPublisher(tt.fields.producer, msg.WithLogger(tt.fields.logger))
 			if err := p.PublishEntityEvents(tt.args.ctx, tt.args.entity, tt.args.options...); (err != nil) != tt.wantErr {
 				t.Errorf("PublishEntityEvents() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -488,7 +488,7 @@ func TestPublisher_PublishReply(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			p := msg.NewPublisher(tt.fields.producer, msg.WithPublisherLogger(tt.fields.logger))
+			p := msg.NewPublisher(tt.fields.producer, msg.WithLogger(tt.fields.logger))
 			if err := p.PublishReply(tt.args.ctx, tt.args.reply, tt.args.options...); (err != nil) != tt.wantErr {
 				t.Errorf("PublishReply() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -527,7 +527,7 @@ func TestPublisher_Stop(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			p := msg.NewPublisher(tt.fields.producer, msg.WithPublisherLogger(tt.fields.logger))
+			p := msg.NewPublisher(tt.fields.producer, msg.WithLogger(tt.fields.logger))
 			if err := p.Stop(tt.args.ctx); (err != nil) != tt.wantErr {
 				t.Errorf("Stop() error = %v, wantErr %v", err, tt.wantErr)
 			}

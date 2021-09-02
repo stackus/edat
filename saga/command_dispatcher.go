@@ -12,6 +12,11 @@ import (
 // CommandHandlerFunc function handlers for saga.Command
 type CommandHandlerFunc func(context.Context, Command) ([]msg.Reply, error)
 
+// CommandDispatcherOption options for CommandDispatcher
+type CommandDispatcherOption interface {
+	configureCommandDispatcher(*CommandDispatcher)
+}
+
 // CommandDispatcher is a MessageReceiver for Commands
 type CommandDispatcher struct {
 	publisher msg.ReplyMessagePublisher
@@ -30,7 +35,7 @@ func NewCommandDispatcher(publisher msg.ReplyMessagePublisher, options ...Comman
 	}
 
 	for _, option := range options {
-		option(c)
+		option.configureCommandDispatcher(c)
 	}
 
 	c.logger.Trace("saga.CommandDispatcher constructed")

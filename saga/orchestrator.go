@@ -11,6 +11,11 @@ import (
 	"github.com/stackus/edat/msg"
 )
 
+// OrchestratorOption options for Orchestrator
+type OrchestratorOption interface {
+	configureOrchestrator(*Orchestrator)
+}
+
 // Orchestrator orchestrates local and distributed processes
 type Orchestrator struct {
 	definition    Definition
@@ -33,7 +38,7 @@ func NewOrchestrator(definition Definition, store InstanceStore, publisher msg.C
 	}
 
 	for _, option := range options {
-		option(o)
+		option.configureOrchestrator(o)
 	}
 
 	o.logger.Trace("saga.Orchestrator constructed", log.String("SagaName", definition.SagaName()))

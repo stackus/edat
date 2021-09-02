@@ -8,6 +8,11 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// CommandDispatcherOption options for CommandDispatcher
+type CommandDispatcherOption interface {
+	configureCommandDispatcher(*CommandDispatcher)
+}
+
 // CommandHandlerFunc function handlers for msg.Command
 type CommandHandlerFunc func(context.Context, Command) ([]Reply, error)
 
@@ -29,7 +34,7 @@ func NewCommandDispatcher(publisher ReplyMessagePublisher, options ...CommandDis
 	}
 
 	for _, option := range options {
-		option(c)
+		option.configureCommandDispatcher(c)
 	}
 
 	c.logger.Trace("msg.CommandDispatcher constructed")

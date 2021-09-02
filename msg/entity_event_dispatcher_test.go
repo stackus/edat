@@ -192,7 +192,7 @@ func TestEntityEventDispatcher_ReceiveMessage(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			d := msg.NewEntityEventDispatcher(msg.WithEntityEventDispatcherLogger(tt.fields.logger))
+			d := msg.NewEntityEventDispatcher(msg.WithLogger(tt.fields.logger))
 			for _, handler := range tt.fields.handlers {
 				d.Handle(handler.evt, handler.fn)
 			}

@@ -248,7 +248,7 @@ func TestCommandDispatcher_ReceiveMessage(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			d := saga.NewCommandDispatcher(tt.fields.publisher, saga.WithCommandDispatcherLogger(tt.fields.logger))
+			d := saga.NewCommandDispatcher(tt.fields.publisher, saga.WithLogger(tt.fields.logger))
 			for _, handler := range tt.fields.handlers {
 				d.Handle(handler.cmd, handler.fn)
 			}

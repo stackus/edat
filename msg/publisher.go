@@ -40,6 +40,11 @@ var _ EventMessagePublisher = (*Publisher)(nil)
 var _ ReplyMessagePublisher = (*Publisher)(nil)
 var _ MessagePublisher = (*Publisher)(nil)
 
+// PublisherOption options for Publisher
+type PublisherOption interface {
+	configurePublisher(*Publisher)
+}
+
 // Publisher send domain events, commands, and replies to the publisher
 type Publisher struct {
 	producer Producer
@@ -55,7 +60,7 @@ func NewPublisher(producer Producer, options ...PublisherOption) *Publisher {
 	}
 
 	for _, option := range options {
-		option(p)
+		option.configurePublisher(p)
 	}
 
 	p.logger.Trace("msg.Publisher constructed")

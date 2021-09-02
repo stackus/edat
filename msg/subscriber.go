@@ -15,28 +15,49 @@ type MessageSubscriber interface {
 	Subscribe(channel string, receiver MessageReceiver)
 }
 
+// Listener interface
+type Listener interface {
+	Listen(ctx context.Context, receiverFn ReceiveMessageFunc) error
+}
+
+type ListenerFunc func(ctx context.Context, receiverFn ReceiveMessageFunc) error
+
+func (f ListenerFunc) Listen(ctx context.Context, receiverFn ReceiveMessageFunc) error {
+	return f(ctx, receiverFn)
+}
+
+type subscription struct {
+	l Listener
+	r MessageReceiver
+}
+
+// SubscriberOption options for Subscriber
+type SubscriberOption interface {
+	configureSubscriber(*Subscriber)
+}
+
 // Subscriber receives domain events, commands, and replies from the consumer
 type Subscriber struct {
-	consumer     Consumer
-	logger       log.Logger
-	middlewares  []func(MessageReceiver) MessageReceiver
-	receivers    map[string][]MessageReceiver
-	stopping     chan struct{}
-	subscriberWg sync.WaitGroup
-	close        sync.Once
+	consumer      Consumer
+	logger        log.Logger
+	middlewares   []func(MessageReceiver) MessageReceiver
+	subscriptions []subscription
+	stopping      chan struct{}
+	subscriberWg  sync.WaitGroup
+	close         sync.Once
 }
 
 // NewSubscriber constructs a new Subscriber
 func NewSubscriber(consumer Consumer, options ...SubscriberOption) *Subscriber {
 	s := &Subscriber{
-		consumer:  consumer,
-		receivers: make(map[string][]MessageReceiver),
-		stopping:  make(chan struct{}),
-		logger:    log.DefaultLogger,
+		consumer:      consumer,
+		subscriptions: make([]subscription, 0, 0),
+		stopping:      make(chan struct{}),
+		logger:        log.DefaultLogger,
 	}
 
 	for _, option := range options {
-		option(s)
+		option.configureSubscriber(s)
 	}
 
 	s.logger.Trace("msg.Subscriber constructed")
@@ -44,9 +65,9 @@ func NewSubscriber(consumer Consumer, options ...SubscriberOption) *Subscriber {
 	return s
 }
 
-// Use appends middleware receivers to the receiver stack
+// Use appends middleware subscriptions to the receiver stack
 func (s *Subscriber) Use(mws ...func(MessageReceiver) MessageReceiver) {
-	if len(s.receivers) > 0 {
+	if len(s.subscriptions) > 0 {
 		panic("middleware must be added before any subscriptions are made")
 	}
 
@@ -54,15 +75,14 @@ func (s *Subscriber) Use(mws ...func(MessageReceiver) MessageReceiver) {
 }
 
 // Subscribe connects the receiver with messages from the channel on the consumer
-func (s *Subscriber) Subscribe(channel string, receiver MessageReceiver) {
-	if _, exists := s.receivers[channel]; !exists {
-		s.receivers[channel] = []MessageReceiver{}
-	}
-	s.logger.Trace("subscribed", log.String("Channel", channel))
-	s.receivers[channel] = append(s.receivers[channel], s.chain(receiver))
+func (s *Subscriber) Subscribe(listener Listener, receiver MessageReceiver) {
+	s.subscriptions = append(s.subscriptions, subscription{
+		l: listener,
+		r: s.chain(receiver),
+	})
 }
 
-// Start begins listening to all of the channels sending received messages into them
+// Start begins all subscription listeners sending received messages into their message subscriptions
 func (s *Subscriber) Start(ctx context.Context) error {
 	cCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -78,10 +98,10 @@ func (s *Subscriber) Start(ctx context.Context) error {
 		return nil
 	})
 
-	for c, r := range s.receivers {
+	for _, sub := range s.subscriptions {
 		// reassign to avoid issues with anonymous func
-		channel := c
-		receivers := r
+		listener := sub.l
+		receiver := sub.r
 
 		s.subscriberWg.Add(1)
 
@@ -102,17 +122,19 @@ func (s *Subscriber) Start(ctx context.Context) error {
 					log.Int("PayloadSize", len(message.Payload())),
 				)
 
-				rGroup, rCtx := errgroup.WithContext(mCtx)
-				for _, r2 := range receivers {
-					receiver := r2
-					rGroup.Go(func() error {
-						return receiver.ReceiveMessage(rCtx, message)
-					})
-				}
-
-				return rGroup.Wait()
+				return receiver.ReceiveMessage(mCtx, message)
+				// rGroup, rCtx := errgroup.WithContext(mCtx)
+				// for _, r2 := range subscriptions {
+				// 	receiver := r2
+				// 	rGroup.Go(func() error {
+				// 		return receiver.ReceiveMessage(rCtx, message)
+				// 	})
+				// }
+				//
+				// return rGroup.Wait()
 			}
-			err := s.consumer.Listen(gCtx, channel, receiveMessageFunc)
+			err := listener.Listen(ctx, receiveMessageFunc)
+			// err := s.consumer.Listen(gCtx, channel, receiveMessageFunc)
 			if err != nil {
 				s.logger.Error("consumer stopped and returned an error", log.Error(err))
 				return err
@@ -139,9 +161,9 @@ func (s *Subscriber) Stop(ctx context.Context) (err error) {
 
 		select {
 		case <-done:
-			s.logger.Trace("all receivers are done")
+			s.logger.Trace("all subscriptions are done")
 		case <-ctx.Done():
-			s.logger.Warn("timed out waiting for all receivers to close")
+			s.logger.Warn("timed out waiting for all subscriptions to close")
 		}
 	})
 

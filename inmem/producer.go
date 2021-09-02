@@ -7,6 +7,11 @@ import (
 	"github.com/stackus/edat/msg"
 )
 
+// ProducerOption options for Producer
+type ProducerOption interface {
+	configureProducer(*Producer)
+}
+
 // Producer implements msg.Producer
 type Producer struct {
 	logger log.Logger
@@ -21,7 +26,7 @@ func NewProducer(options ...ProducerOption) *Producer {
 	}
 
 	for _, option := range options {
-		option(p)
+		option.configureProducer(p)
 	}
 
 	return p

@@ -7,6 +7,11 @@ import (
 	"github.com/stackus/edat/log"
 )
 
+// EventDispatcherOption options for EventDispatcher
+type EventDispatcherOption interface {
+	configureEventDispatcher(*EventDispatcher)
+}
+
 // EventHandlerFunc function handlers for msg.Event
 type EventHandlerFunc func(context.Context, Event) error
 
@@ -26,7 +31,7 @@ func NewEventDispatcher(options ...EventDispatcherOption) *EventDispatcher {
 	}
 
 	for _, option := range options {
-		option(c)
+		option.configureEventDispatcher(c)
 	}
 
 	c.logger.Trace("msg.EventDispatcher constructed")
